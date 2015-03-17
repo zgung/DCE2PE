@@ -39,7 +39,7 @@ set -e
 # state your parameters
 patdir=$1
 no_reg=$2
-thrs='150' # this filters some noise in the images
+thrs='200' # this filters some noise in the images
 
 # check if the directory is existing
 if [ ! -d "$patdir" ]; then
