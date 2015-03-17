@@ -39,7 +39,7 @@ set -e
 # state your parameters
 patdir=$1
 no_reg=$2
-thrs='150'
+thrs='150' # this filters some noise in the images
 
 # check if the directory is existing
 if [ ! -d "$patdir" ]; then
@@ -75,13 +75,11 @@ if [ "$numfil" -ne 2 ]; then
 	exit 1; else
 	echo
 	echo 'I hope you are using the right Dicom series,)'
- 
 fi
 
 # allocate the files
 pre=$(ls | grep .mnc | sort -n | head -1)
 pea=$(ls | grep .mnc | sort -n | tail -1)
-
 echo
 echo 'The files created are: '$pre' and '$pea
 echo
@@ -90,26 +88,23 @@ echo
 # first check if you 
 if [ "$no_reg" == 'noreg' ]; then
 	echo 'The image are not going to be registered!'
-	echo;
-else
+	echo; else
 	echo 'Registering the images.....'
 	echo
 	minctracc -lsq9 $pre $pea transf.xfm
-	mincresample -like $pea -transformation transf.xfm $pre pre_reg.mnc;
+	mincresample -like $pea -transformation transf.xfm $pre pre_reg.mnc
 fi
 # filter the noise from 125 to 10000 on both files:
 if [ -f "${patfol}"/pre_reg.mnc ]; then
 	echo 'Calculating the percentage enhancement maps using the registered files'
-	mincmath -clobber -const2 $thrs 10000 -clamp pre_reg.mnc pre.mnc;
-else
+	mincmath -clobber -const2 $thrs 10000 -clamp pre_reg.mnc pre.mnc; else
 	echo 'Calculating the percentage enhancement maps using original files'
-	mincmath -clobber -const2 $thrs 10000 -clamp $pre pre.mnc;
+	mincmath -clobber -const2 $thrs 10000 -clamp $pre pre.mnc
 fi
 mincmath -clobber -const2 $thrs 10000 -clamp $pea pea.mnc
 
 # calculate the percentage enhancement and clamp it so there are no negative values:
-# function description: mincmath -pd is: PE- = 100 * (pre - pea) / pre
-
+# function description of mincmath -pd is: PE- = 100 * (pre - pea) / pre
 mincmath -pd pre.mnc pea.mnc pe-.mnc
 mincmath -abs pe-.mnc pe_.mnc
 mincmath -const2 0 10000 -clamp pe_.mnc pe.mnc
