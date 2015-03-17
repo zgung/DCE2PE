@@ -3,11 +3,15 @@
 This script calculates the percentage enhancement maps from DCE MRI pre- and post-contrast images
 
 For this script to work, you will need:
+
  1) OsiriX or Horos (Mac OS X)
+
  2) Pre and post contrast DCE MRI data
- 3) minc-tools (use Homebrew, it's easy) along with mni-autoreg
- 	that is possible to install easily only on linux,(
+
+ 3) minc-tools along with mni-autoreg
+
  4) 'Nifti To DICOM' Database plugin in OsiriX installed
+
 
  This is how it works:
 
