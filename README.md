@@ -25,9 +25,13 @@ For this script to work, you will need:
 
  ./dce2pe.sh 'Patient's directory made by Osirix'
 
- there is an option to not register the data with:
+ there is an option to register the data with:
 
- ./dce2pe.sh 'Patient's directory made by Osirix' noreg
+ ./dce2pe.sh 'Patient's directory made by Osirix' linear
+
+ or if you want to use non-linear registration:
+
+ ./dce2pe.sh 'Patient's directory made by Osirix' nonlin
 
  
  3) be sure to have only the two datasets with pre and post 

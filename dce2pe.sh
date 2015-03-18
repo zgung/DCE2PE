@@ -27,10 +27,13 @@ set -e
 #
 # ./dce2pe.sh 'Patient's directory made by Osirix'
 #
-# there is an option to not register the data with:
+# there is an option to register the data with:
 #
-# ./dce2pe.sh 'Patient's directory made by Osirix' noreg
+# ./dce2pe.sh 'Patient's directory made by Osirix' linear
 #
+# or
+#
+# ./dce2pe.sh 'Patient's directory made by Osirix' nonlin
 # 
 # 3) be sure to have only the two datasets with pre and post 
 #  contrast Dicoms
@@ -38,7 +41,7 @@ set -e
 
 # state your parameters
 patdir=$1
-no_reg=$2
+reg=$2
 thrs='200' # this filters some noise in the images
 
 # check if the directory is existing
@@ -60,7 +63,7 @@ find $patfol -maxdepth 1 -type f -name "*.mnc" -delete
 
 # make minc files from dicoms:
 fold1=${patfol}/*/*
-dcm2mnc -clobber -dname '' -fname '%A' $fold1 $patfol
+dcm2mnc -dname '' -fname '%A' $fold1 $patfol
 
 # go inside the patient's folder
 cd $patfol
@@ -85,23 +88,28 @@ echo 'The files created are: '$pre' and '$pea
 echo
 
 # register the images
-# first check if you 
-if [ "$no_reg" == 'noreg' ]; then
-	echo 'The image are not going to be registered!'
-	echo; else
-	echo 'Registering the images.....'
+# first check if you are going to register and how
+if [ "$reg" == 'nonlin' ]; then
+	echo 'Registering the images - nonlinear.....'
 	echo
-	minctracc -lsq9 $pre $pea transf.xfm
+	minctracc -lsq9 $pre $pea transf.xfm # non-linear resistration
 	mincresample -like $pea -transformation transf.xfm $pre pre_reg.mnc
+elif [ "$reg" == 'linear' ]; then
+	echo 'Registering the images - linear.....'
+	echo
+	minctracc -lsq6 $pre $pea transf.xfm
+	mincresample -like $pea -transformation transf.xfm $pre pre_reg.mnc; else
+	echo
+	echo 'The image are not going to be registered!'
 fi
 # filter the noise from 125 to 10000 on both files:
 if [ -f "${patfol}"/pre_reg.mnc ]; then
 	echo 'Calculating the percentage enhancement maps using the registered files'
-	mincmath -clobber -const2 $thrs 10000 -clamp pre_reg.mnc pre.mnc; else
+	mincmath -const2 $thrs 10000 -clamp pre_reg.mnc pre.mnc; else
 	echo 'Calculating the percentage enhancement maps using original files'
-	mincmath -clobber -const2 $thrs 10000 -clamp $pre pre.mnc
+	mincmath -const2 $thrs 10000 -clamp $pre pre.mnc
 fi
-mincmath -clobber -const2 $thrs 10000 -clamp $pea pea.mnc
+mincmath -const2 $thrs 10000 -clamp $pea pea.mnc
 
 # calculate the percentage enhancement and clamp it so there are no negative values:
 # function description of mincmath -pd is: PE- = 100 * (pre - pea) / pre
@@ -110,7 +118,7 @@ mincmath -abs pe-.mnc pe_.mnc
 mincmath -const2 0 10000 -clamp pe_.mnc pe.mnc
 
 # create nifti files from both the PE and the original enhanced images:
-echo 'Creating niftii files.............'
+echo 'Creating nifti files.............'
 
 # if there are some nifti files created delete them
 find $patfol -maxdepth 1 -type f -name "pe.nii" -delete
