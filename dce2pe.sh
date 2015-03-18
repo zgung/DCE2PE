@@ -134,7 +134,9 @@ echo '.................................'
 
 # we don't need these minc files anywhere ever
 rm ${patfol}/*.mnc
-rm ${patfol}/transf.xfm
+if [ -f "${patfol}"/transf.xfm ]; then
+	rm ${patfol}/transf.xfm
+fi
 
 # that's it!
 echo
